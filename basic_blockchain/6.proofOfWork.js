@@ -58,7 +58,7 @@ class Blockchain {
   pow(parentHash, currentBlockData) {
     let nonce = 0;
     let hashValue = this.hashBlock(parentHash, currentBlockData, nonce);
-    while (hashValue.substring(0, 4) !== '0000') {
+    while (hashValue.substring(0, 5) !== '00000') {
       nonce++;
       hashValue = this.hashBlock(parentHash, currentBlockData, nonce);
       console.log('hashValue 는 : ', hashValue);
