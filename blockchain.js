@@ -8,6 +8,8 @@ class Blockchain {
     this.chain = [];
     this.pendingTxs = []; // 멤풀이라고 한다. 멤풀은 트랜잭션이 머무르는 대기 공간이다.
 
+    // 3. 현재 노드 URl 정보를 constructor에 넣었고 네트워크에서 노드가 서로 연결되어 있는지
+    // 확인할 수 있는 networkNodes 라는 빈 배열(어레이, 공간)를 만들었다.
     this.currentNodeUrl = currentNodeUrl;
     this.networkNodes = [];
 
