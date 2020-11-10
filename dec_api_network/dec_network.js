@@ -1,7 +1,10 @@
 const Blockchain = require('./blockchain');
+
 const { v4: uuidv4 } = require('uuid');
-const bodyParser = require('body-parser');
-const rp = require('request-promise'); // 비동기 네트워크
+const bodyParser = require('body-parser'); // 파싱
+
+const rp = require('request-promise'); // 비동기 네트워크 async & await도 비동기 네트워크 연결 방법이지만 보기에는 동기적으로 보인다.
+
 const express = require('express');
 const app = express();
 
@@ -26,7 +29,29 @@ app.get('/blockchain', (req, res) => {
 });
 
 // 모든 노드에게 새로운 트랜잭션을 전송한다
-app.post('/transaction', (req, res) => {});
+app.post('/transaction', (req, res) => {
+  const newTransaction = req.body;
+
+  // 만약 body에 아무런 데이터도 없는 경우, 에러 응답을 보내줘야 한다.
+  if (Object.entries(newTransaction).length >= 3) {
+    const blockIndex = bitcoin.createNewTransaction(
+      newTransaction.amount,
+      newTransaction.sender,
+      newTransaction.recipient
+    );
+    res.json({
+      msg: `The new transaction will be added in block ${blockIndex}`,
+    });
+  } else if (0 < Object.entries(newTransaction).length < 3) {
+    res.json({
+      msg: 'Not enough Transaction Data',
+    });
+  } else {
+    res.json({
+      msg: 'No Transaction data',
+    });
+  }
+});
 
 app.get('/mine', (req, res) => {
   const lastBlock = bitcoin.getLastBlock();
@@ -61,11 +86,11 @@ app.get('/mine', (req, res) => {
 // 4. 노드 간의 서로 연결되어 분산 네트워크 구축을 위한 API 엔드포인트다.
 app.post('/node/registration-broadcasting', (req, res) => {
   // 5. 한 노드에서 새로운 노드를 바디(body, 정보)에 실어서 보내는 코드
-  const newNodeUrl = req.body.newNodeUrl;
+  const newNodeUrl = req.body.newNodeUrl; // localhost:3002
 
   // 6. 현재 네트워크 노드 공간(어레이)안에서 새로운 노드 url이 만약 포함되어 있지 않을 경우,
   // 새로운 노드 url을 networkNodes 어레이에 푸쉬(추가) 한다.
-  if (!bitcoin.networkNodes.include(newNodeUrl)) {
+  if (!bitcoin.networkNodes.includes(newNodeUrl)) {
     //include는 포함하다 라는 뜻
     bitcoin.networkNodes.push(newNodeUrl);
   }
@@ -119,7 +144,7 @@ app.post('/node/registration-broadcasting', (req, res) => {
 // 바디(body)로 들어온 새로운 노드 url을 8.1 networkNodes에 이미 있는지 파악을 하고
 // 8.2 그리고 현재 노드 url과 다르면 networkNodes 어레이(공간)에 새로운 노드를 푸쉬(추가)해서 등록한다.
 app.post('/node/registration', (req, res) => {
-  const newNodeUrl = req.body.newNodeUrl;
+  const newNodeUrl = req.body.newNodeUrl; // newNodeUrl = localhost:3002
   const nodeNotInNetwork = !bitcoin.networkNodes.includes(newNodeUrl); // true
   const notCurrentNode = bitcoin.currentNodeUrl !== newNodeUrl; // true
 
@@ -151,5 +176,6 @@ app.post('/node/registration/all', (req, res) => {
 // 터미널 5개를 만들어서 각 터미널에서 노드가 제대로 동작이 되는지 확인한다
 // 노드간 서로 연결을 위해서 필요한 작업을 blockchain.js에서 다시 진행한다.
 app.listen(port, () => {
+  // callback => 다시 알려줌/ 다시 응답 해줌
   console.log(`Listening on port ${port}......changed`);
 });

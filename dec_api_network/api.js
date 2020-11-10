@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // 전체 블록체인을 가져오는 코드
 app.get('/blockchain', (req, res) => {
   // req = request, res = response
-  console.log('hello this is a blockcww');
+  console.log('hello world');
 });
 
 app.get('/transaction', (req, res) => {
