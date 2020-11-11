@@ -28,31 +28,6 @@ app.get('/blockchain', (req, res) => {
   res.send(bitcoin);
 });
 
-// 모든 노드에게 새로운 트랜잭션을 전송한다. // (리팩토링 하기 전 )
-// app.post('/transaction', (req, res) => {
-//   const newTransaction = req.body;
-
-//   // 만약 body에 아무런 데이터도 없는 경우, 에러 응답을 보내줘야 한다.
-//   if (Object.entries(newTransaction).length >= 3) {
-//     const blockIndex = bitcoin.createNewTransaction(
-//       newTransaction.amount,
-//       newTransaction.sender,
-//       newTransaction.recipient
-//     );
-//     res.json({
-//       msg: `The new transaction will be added in block ${blockIndex}`,
-//     });
-//   } else if (0 < Object.entries(newTransaction).length < 3) {
-//     res.json({
-//       msg: 'Not enough Transaction Data',
-//     });
-//   } else {
-//     res.json({
-//       msg: 'No Transaction data',
-//     });
-//   }
-// });
-
 app.post('/transaction', (req, res) => {
   const newTransaction = req.body;
 
