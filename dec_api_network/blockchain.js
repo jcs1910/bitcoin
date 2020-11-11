@@ -16,6 +16,46 @@ class Blockchain {
     // Genesis Block(블록체인의 가장 첫 번째 블록)을 생성하는 코드
     this.createNewBlock('', '', 0);
   }
+  // 블록체인이 유효한지 아닌지를 검증하는 단계
+  chainIsValid(blockchain) {
+    let validChain = true;
+
+    for (let i = 1; i < blockchain.length; i++) {
+      const currentBlock = blockchain[i]; // 1번째 블록
+      const previousBlock = blockchain[i - 1]; // 0번째 블록
+
+      // 2. 각 블록이 연속해서 4개의 0 (0000) 으로 시작 되는지 확인
+      const blockHash = this.hashBlock(
+        previousBlock['hash'],
+        {
+          transactions: currentBlock['transactions'],
+          index: currentBlock['index'],
+        },
+        currentBlock['nonce']
+      );
+
+      if (blockHash.substring(0, 4) !== '0000') {
+        validChain = false;
+      }
+
+      // 1. 이전 블록의 해쉬 값과 현재 블록의 해쉬 값을 비교
+      if (currentBlock['parentHash'] !== previousBlock['hash']) {
+        //해당 체인은 유효하지 않음
+        validChain = false;
+      }
+    }
+    // Genesis Block을 검증한다.
+    const genesisBlock = blockchain[0];
+    const correctNonce = genesisBlock['nonce'] === 0;
+    const correctParentHash = genesisBlock['parentHash'] === '';
+    const correctHash = genesisBlock['hash'] === '';
+    const correctTxs = genesisBlock['transaction'].length === 0;
+
+    if (!correctNonce || !correctParentHash || !correctHash || !correctTxs) {
+      validChain = false;
+    }
+    return validChain;
+  }
 
   // 새로운 블록을 만드는 코드
   createNewBlock(parentHash, hash, nonce) {
