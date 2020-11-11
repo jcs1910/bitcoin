@@ -50,6 +50,7 @@ app.post('/transaction', (req, res) => {
 
 app.post('/transaction/broadcast', (req, res) => {
   const transaction = req.body;
+
   const newTransaction = bitcoin.createNewTransaction(
     transaction.amount,
     transaction.sender,
@@ -98,12 +99,62 @@ app.get('/mine', (req, res) => {
     nonce
   );
 
-  bitcoin.createNewTransaction(6.25, '00', nodeAddress);
-
-  res.json({
-    message: 'New Block minded successfully',
-    block: newBlock,
+  const requestPromises = [];
+  // 네트워크에 존재하는 모든 다른 노드들을 순회하면서 요청을 보낸다. 그리고 새로운 블록과 함께 있는 데이터를 그들에게 전송한다.
+  bitcoin.networkNodes.forEach((networkNodeUrl) => {
+    const requestOptions = {
+      uri: networkNodeUrl + '/receive-new-block',
+      method: 'POST',
+      body: { newBlock: newBlock },
+      json: true,
+    };
+    requestPromises.push(rp(requestOptions));
   });
+
+  // 새로운 블록을 채굴 하는 것에 대한 블록 보상을 전파(broadcast)
+  Promise.all(requestPromises)
+    .then((data) => {
+      const requestOptions = {
+        uri: bitcoin.currentNodeUrl + '/transaction/broadcast',
+        method: 'POST',
+        body: {
+          amount: 6.25,
+          sender: '00',
+          recipient: nodeAddress,
+        },
+        json: true,
+      };
+      return rp(requestOptions);
+    })
+    .then((data) => {
+      res.json({
+        msg: 'New block mined and broadcast successfully',
+        block: newBlock,
+      });
+    });
+});
+
+app.post('/receive-new-block', (req, res) => {
+  // 유효한 블록인지 검증을 한다. 첫 번째, 해시를 검증 두 번째, 블록의 인덱스(번호)
+  const newBlock = req.body.newBlock;
+  const lastBlock = bitcoin.getLastBlock();
+
+  const validHash = lastBlock['hash'] === newBlock['parentHash'];
+  const validIndex = lastBlock['index'] + 1 === newBlock['index'];
+
+  if (validHash && validIndex) {
+    bitcoin.chain.push(newBlock);
+    bitcoin.pendingTxs = [];
+    res.json({
+      msg: 'New Block received and accepted',
+      newBlock: newBlock,
+    });
+  } else {
+    res.json({
+      msg: 'New Block rejected',
+      newBlock: newBlock,
+    });
+  }
 });
 
 // 4. 노드 간의 서로 연결되어 분산 네트워크 구축을 위한 API 엔드포인트다.
