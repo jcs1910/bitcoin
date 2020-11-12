@@ -44,12 +44,12 @@ class Blockchain {
         validChain = false;
       }
     }
-    // Genesis Block을 검증한다.
+    // 3. Genesis Block을 검증한다.
     const genesisBlock = blockchain[0];
     const correctNonce = genesisBlock['nonce'] === 0;
     const correctParentHash = genesisBlock['parentHash'] === '';
     const correctHash = genesisBlock['hash'] === '';
-    const correctTxs = genesisBlock['transaction'].length === 0;
+    const correctTxs = genesisBlock['transactions'].length === 0;
 
     if (!correctNonce || !correctParentHash || !correctHash || !correctTxs) {
       validChain = false;
