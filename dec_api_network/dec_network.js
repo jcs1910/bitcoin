@@ -296,6 +296,38 @@ app.get('/consensus', (req, res) => {
   });
 });
 
+app.get('/block/:blockHash', (req, res) => {
+  const blockHash = req.params.blockHash;
+  const correctBlock = bitcoin.getBlockByHash(blockHash);
+  res.json({
+    block: correctBlock,
+  });
+});
+
+app.get('/block-number/:blockNumber', (req, res) => {
+  const blockNumber = req.params.blockNumber;
+  const correctBlock = bitcoin.getBlockByNumber(blockNumber);
+  res.json({
+    block: correctBlock,
+  });
+});
+
+app.get('/address/:address', (req, res) => {
+  const address = req.params.address;
+  const addressData = bitcoin.getAddressData(address);
+  res.json({
+    addressData: addressData,
+  });
+});
+
+app.get('/transaction/:transactionId', (req, res) => {
+  const transactionId = req.params.transactionId; // transactionId = 30e23a32ff314fe28ac15a54ba7c2de4
+  const transactionData = bitcoin.getTransaction(transactionId);
+  res.json({
+    block: transactionData.block,
+  });
+});
+
 // 2. 고정 포트 3000을 지우고 변수 포트(port)를 대입한다.
 // 터미널 5개를 만들어서 각 터미널에서 노드가 제대로 동작이 되는지 확인한다
 // 노드간 서로 연결을 위해서 필요한 작업을 blockchain.js에서 다시 진행한다.
