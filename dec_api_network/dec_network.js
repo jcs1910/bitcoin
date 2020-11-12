@@ -328,6 +328,10 @@ app.get('/transaction/:transactionId', (req, res) => {
   });
 });
 
+app.get('/block-explorer', (req, res) => {
+  res.sendFile('./block-explorer/index.html', { root: __dirname });
+});
+
 // 2. 고정 포트 3000을 지우고 변수 포트(port)를 대입한다.
 // 터미널 5개를 만들어서 각 터미널에서 노드가 제대로 동작이 되는지 확인한다
 // 노드간 서로 연결을 위해서 필요한 작업을 blockchain.js에서 다시 진행한다.
