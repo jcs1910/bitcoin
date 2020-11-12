@@ -6,6 +6,7 @@ const bodyParser = require('body-parser'); // 파싱
 const rp = require('request-promise'); // 비동기 네트워크 async & await도 비동기 네트워크 연결 방법이지만 보기에는 동기적으로 보인다.
 
 const express = require('express');
+const request = require('request');
 const app = express();
 
 const bitcoin = new Blockchain();
@@ -244,6 +245,55 @@ app.post('/node/registration/all', (req, res) => {
     }
   });
   res.json({ msg: 'All nodes are successfully synchronized' });
+});
+
+// Get 합의 과정(Consensus)에 관한 API
+app.get('/consensus', (req, res) => {
+  const requestPromises = [];
+
+  bitcoin.networkNodes.forEach((networkNodeUrl) => {
+    const requestOptions = {
+      uri: networkNodeUrl + '/blockchain',
+      method: 'GET',
+      json: true,
+    };
+    requestPromises.push(rp(requestOptions));
+  });
+
+  Promise.all(requestPromises).then((blockchains) => {
+    const currentChainLength = bitcoin.chain.length;
+    let maxChainLength = currentChainLength;
+    let newLongestChain = null;
+    let newPendingTxs = null;
+
+    // 모든 블록체인을 순회하면서 어떤 체인이 가장 긴 체인인지 확인을 한다.
+    blockchains.forEach((blockchain) => {
+      // 다른 노드의 블록체인이 더 긴 체인인지 확인을 한다
+      if (blockchain.chain.length > maxChainLength) {
+        maxChainLength = blockchain.chain.length;
+        newLongestChain = blockchain.chain;
+        newPendingTxs = blockchain.pendingTxs;
+      }
+    });
+    if (
+      !newLongestChain ||
+      (newLongestChain && !bitcoin.chainIsValid(newLongestChain))
+    ) {
+      res.json({
+        msg: 'Current chain is the longest so it is not replaced(changed)',
+        chain: bitcoin.chain,
+      });
+    } else if (newLongestChain && bitcoin.chainIsValid(newLongestChain)) {
+      // 다른 어떤 노드가 가진 체인이 가장 긴 블록체인으로 판명 됬으니, 현재 노드의 블록체인을 바꿈
+      bitcoin.chain = newLongestChain;
+      bitcoin.pendingTxs = newPendingTxs;
+
+      res.json({
+        msg: 'The chain has been replaced(changed)',
+        chain: bitcoin.chain,
+      });
+    }
+  });
 });
 
 // 2. 고정 포트 3000을 지우고 변수 포트(port)를 대입한다.
